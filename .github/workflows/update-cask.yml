@@ -1,0 +1,56 @@
+name: Update cask
+
+# Keep Casks/agentgem.rb in sync with the latest desktop-v* release of
+# ninemindai/agentgem. Runs daily and on demand; commits a bump when the
+# published version is newer than the cask.
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump cask to the latest desktop release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO=ninemindai/agentgem
+
+          # Newest desktop-v* tag (ignores the npm-core v* tags).
+          TAG=$(gh release list --repo "$REPO" --limit 40 --json tagName \
+                  --jq '[.[].tagName | select(startswith("desktop-v"))] | first')
+          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+            echo "No desktop-v* release found"; exit 0
+          fi
+          VER=${TAG#desktop-v}
+
+          CUR=$(sed -nE 's/^[[:space:]]*version "([^"]+)".*/\1/p' Casks/agentgem.rb | head -1)
+          if [ "$VER" = "$CUR" ]; then
+            echo "Cask already at $VER"; exit 0
+          fi
+          echo "Bumping $CUR -> $VER"
+
+          base="https://github.com/$REPO/releases/download/$TAG"
+          export ARM_SHA=$(curl -fsSL "$base/AgentGem-$VER-arm64.dmg" | shasum -a 256 | awk '{print $1}')
+          export INTEL_SHA=$(curl -fsSL "$base/AgentGem-$VER.dmg" | shasum -a 256 | awk '{print $1}')
+
+          # version + the two sha256s in order (on_arm block first, on_intel second).
+          perl -0777 -pi -e 's/version "[^"]+"/version "'"$VER"'"/' Casks/agentgem.rb
+          perl -0777 -pi -e 'my @s=($ENV{ARM_SHA},$ENV{INTEL_SHA}); my $i=0;
+            s/sha256 "[0-9a-f]{64}"/"sha256 \"".$s[$i++]."\""/ge' Casks/agentgem.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/agentgem.rb
+          if git diff --cached --quiet; then
+            echo "No changes"; exit 0
+          fi
+          git commit -m "agentgem $VER"
+          git push
