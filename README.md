@@ -6,11 +6,16 @@ config into secret-safe, composable Gems.
 ## Install the desktop app
 
 ```bash
-brew install --cask ninemindai/tap/agentgem
+brew tap ninemindai/tap
+brew trust ninemindai/tap          # recent Homebrew gates third-party casks
+brew install --cask agentgem
 ```
 
-That taps this repo and installs **AgentGem.app** to `/Applications`. Update and
-uninstall the usual way:
+(`brew install --cask ninemindai/tap/agentgem` also works and will prompt to trust
+the tap the first time.)
+
+That installs **AgentGem.app** to `/Applications`. Update and uninstall the usual
+way:
 
 ```bash
 brew upgrade --cask agentgem
