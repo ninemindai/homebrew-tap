@@ -1,14 +1,14 @@
 cask "agentgem" do
-  version "0.5.0"
+  version "0.6.0"
 
   on_arm do
-    sha256 "469e8cafbf20dc78ed8c6db0708907c12583e3880a139cbabe691d9a4102529b"
+    sha256 "a1670f6fe939bfd0d2fdac8cc77e19090f243362fe4ccbd6a72be5e49d6b2deb"
 
     url "https://github.com/ninemindai/agentgem/releases/download/desktop-v#{version}/AgentGem-#{version}-arm64.dmg",
         verified: "github.com/ninemindai/agentgem/"
   end
   on_intel do
-    sha256 "6880110f19521933b100f3dd2ce03e4d7badb7d6f10aa49ba0b9eee041c4f45b"
+    sha256 "6037905ad2a7df1307a0c5a295f49f3729eff472b7738cdaf8567bf77a780948"
 
     url "https://github.com/ninemindai/agentgem/releases/download/desktop-v#{version}/AgentGem-#{version}.dmg",
         verified: "github.com/ninemindai/agentgem/"
